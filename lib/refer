@@ -1,1 +1,581 @@
 build\app\outputs\flutter-apk\app-release.apk
+
+
+
+class RoadPainter extends CustomPainter{
+  RoadPainter({required this.nodes,required this.progress});
+  final List<Offset> nodes;
+  final int progress;
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (nodes.length < 2) return;
+    final backgroundPaint = Paint()
+      ..color = Color(0xFFFFE0B2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40
+      ..strokeCap = StrokeCap.round;
+     final activePaint = Paint()
+      ..color = Color(0xFF4CAF50)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40
+     ..strokeCap = StrokeCap.round;
+    Path fullpath = Path();
+    fullpath.moveTo(nodes[0].dx,nodes[0].dy);
+    for(int i =0;i<nodes.length-1;i++){
+      _addSBeizer(fullpath, nodes[i],nodes[i+1],size.width);
+    }
+    canvas.drawPath(fullpath, backgroundPaint);
+    Path activepath = Path();
+    activepath.moveTo(nodes[0].dx,nodes[0].dy);
+    for(int i =0;i<progress-1;i++){
+      _addSBeizer(activepath, nodes[i], nodes[i+1],size.width);
+    }
+    canvas.drawPath(activepath,activePaint);
+
+
+    }
+    void _addSBeizer(Path path,Offset p1,Offset p2,double screenWidth){
+
+
+    double bendIntensity = (p1.dx<p2.dx) ? screenWidth *0.88:screenWidth*0.12;
+      double controlY =(p1.dy+p2.dy)/2;
+      path.cubicTo(bendIntensity,p1.dy,
+                   bendIntensity,controlY,
+                   bendIntensity,controlY);
+      path.cubicTo(bendIntensity,controlY,
+                   bendIntensity,p2.dy,
+                    p2.dx,p2.dy);
+
+  }
+
+
+
+
+
+  @override
+  bool shouldRepaint(RoadPainter oldDelegate)=>oldDelegate.progress != progress;
+
+
+}
+ path.moveTo(leftX,radius);
+    for (int i =0;i<loops;i++){
+      double y1 =radius+(i*rowHeight*2);
+      path.lineTo(rightX,y1);
+      path.arcTo(Rect.fromCircle(center: Offset(rightX,y1+radius), radius: radius),-1.57,3.14,false);
+      path.lineTo(leftX,y1+rowHeight);
+      if(i< loops -1) {
+        path.arcTo(Rect.fromCircle(
+            center: Offset(leftX, y1 + radius+rowHeight), radius: radius),
+            1.57, 3.14, false);
+      }
+
+
+
+   class _serpentineRoadState extends State<serpentineRoad> {
+     final int loops = 10;
+     final double rowHeight =200;
+     final double padding = 60;
+     @override
+     Widget build(BuildContext context) {
+       return Scaffold(
+         backgroundColor: Colors.green[50],
+         body: LayoutBuilder(builder: (context,constraints){
+           final double totalHeight =(loops*2)*rowHeight;
+           final double width =constraints.maxWidth;
+
+         return SingleChildScrollView(
+           child: Container(
+             height: totalHeight,
+             width: width,
+             child: Stack(
+               children: [
+                 CustomPaint(
+                   size: Size(width, totalHeight),
+                   painter: SerpentinePainter(
+                       loops: loops,
+                       rowHeight: rowHeight,
+                       padding: padding),
+                 )
+               ],
+             ),
+           ),
+         );}),
+
+       );
+     }
+   }
+
+   class SerpentinePainter extends CustomPainter{
+     final int loops;
+     final double rowHeight;
+     final double padding;
+     SerpentinePainter({ required this.loops, required this.rowHeight, required this.padding});
+
+     @override
+     void paint(Canvas canvas,Size size){
+       final paint = Paint()
+         ..color = Color(0xFFFFE0B2)
+         ..style = PaintingStyle.stroke
+         ..strokeWidth = 40
+         ..strokeCap = StrokeCap.round;
+
+       final path =Path();
+       final double radius = rowHeight/2;
+       final double leftX =padding;
+       final double rightX =size.width -padding;
+
+       path.moveTo(leftX,radius);
+       for (int i =0;i<loops;i++){
+         double y1 =radius+(i*rowHeight*2);
+         path.lineTo(rightX,y1);
+         path.arcTo(Rect.fromCircle(center: Offset(rightX,y1+radius), radius: radius),-1.57,3.14,false);
+         path.lineTo(leftX,y1+rowHeight);
+         if(i< loops -1) {
+           path.arcTo(Rect.fromCircle(
+               center: Offset(leftX, y1 + radius+rowHeight), radius: radius),
+               1.57, 3.14, false);
+         }
+       }
+       canvas.drawPath(path, paint);
+
+     }
+
+     bool shouldRepaint(covariant CustomPainter oldDelegate)=> false;
+
+   }
+   class FlatRoadPainter extends CustomPainter {
+     final int loops;
+     final double rowHeight;
+     final double padding;
+     final List<Offset> nodes;
+     final int progress;
+
+     FlatRoadPainter({
+       required this.loops,
+       required this.rowHeight,
+       required this.padding,
+       required this.nodes,
+       required this.progress,
+     });
+
+     @override
+     void paint(Canvas canvas, Size size) {
+       final paint = Paint()
+         ..color = const Color(0xFFF3D5B5)
+         ..strokeWidth = 40
+         ..style = PaintingStyle.stroke
+         ..strokeCap = StrokeCap.butt;
+
+       final path = Path();
+
+       final double leftX = padding;
+       final double rightX = size.width - padding;
+       final double r = rowHeight / 2;
+       double yTop = r;
+       double yBottom = yTop + rowHeight;
+       path.moveTo(leftX+r/2, yTop);
+       for (int i = 0; i < loops; i++) {
+         path.lineTo(rightX - r, yTop);
+         path.arcTo(
+           Rect.fromLTWH(rightX - rowHeight, yTop, rowHeight, rowHeight),
+           -1.57,
+           3.14,
+           false,
+         );
+         path.lineTo(leftX + r, yBottom);
+         path.arcTo(
+           Rect.fromLTWH(leftX, yBottom, rowHeight, rowHeight),
+           -1.57,
+           -3.14,
+           false,
+         );
+         if (i < loops - 1) {
+           yTop = yBottom + rowHeight;
+           yBottom = yTop + rowHeight;
+           path.moveTo(leftX + r, yTop);
+         }
+       }
+
+       canvas.drawPath(path, paint);
+     }
+
+     @override
+     bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+   }
+
+
+    List<Offset> nodes =List.generate(loops*2,(i){
+             double xPercent = (i%2==0)? .30 : .70;
+             return Offset(width*xPercent,rowHeight*(i+0.5));
+           });
+
+
+
+
+import 'package:flutter/material.dart';
+
+
+class serpentineRoad extends StatefulWidget {
+  const serpentineRoad({super.key});
+
+  @override
+  State<serpentineRoad> createState() => _serpentineRoadState();
+}
+
+class _serpentineRoadState extends State<serpentineRoad> {
+  final int loops = 10;
+  final double rowHeight =200;
+  final double padding = 60;
+  double progress = 1;
+  List<Offset> calculateNodeOffsets(double width, double rowHeight, double padding, int loops) {
+    List<Offset> nodes = [];
+
+    final double r = rowHeight / 2;
+    final double leftX = padding;
+    final double rightX = width - padding;
+
+    double yTop = r;
+    double yBottom = yTop + rowHeight;
+    nodes.add(Offset(leftX + r / 2, yTop));
+
+    for (int i = 0; i < loops; i++) {
+      nodes.add(Offset(rightX - r, yTop));
+      nodes.add(Offset(rightX - r, yBottom));
+      nodes.add(Offset(leftX + r, yBottom));
+
+      if (i < loops - 1) {
+        yTop = yBottom + rowHeight;
+        yBottom = yTop + rowHeight;
+        nodes.add(Offset(leftX + r, yTop));
+      }
+    }
+
+    return nodes;
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.green[50],
+      body: LayoutBuilder(builder: (context,constraints){
+        final double totalHeight =(loops*2)*rowHeight;
+        final double width =constraints.maxWidth;
+        List<Offset> nodes =List.generate(loops*2,(i){
+          double xPercent = (i%2==0)? .30 : .70;
+          return Offset(width*xPercent,rowHeight*(i+0.5));
+        });
+        final List<Offset>Nodes =calculateNodeOffsets(width, rowHeight, padding, loops);
+        final int totalNodes=Nodes.length;
+
+        return SingleChildScrollView(
+          child: Container(
+            height: totalHeight,
+            width: width,
+            child: Stack(
+              children: [
+                CustomPaint(
+                  size: Size(width, totalHeight),
+                  painter: FlatRoadPainter(
+                      loops: loops,
+                      rowHeight: rowHeight,
+                      padding: padding,
+                      progress: progress,
+                      totalNodes: totalNodes,
+                  ),
+                ),
+                ...nodes.asMap().entries.map((entry){
+                  int index =entry.key;
+                  return Positioned(
+                    left: entry.value.dx-30,
+                    top: entry.value.dy-30,
+                      child: GestureDetector(
+                        onTap: (){
+                            setState(() => progress = index.toDouble());
+                          print('showindex $progress');},
+                        child: _buildNode(index),
+                      ));
+                })
+              ],
+            ),
+          ),
+        );}),
+
+    );
+  }
+}
+Widget _buildNode(int index){
+  return Container(
+    width: 60,
+    height: 60,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.green)
+
+    ),
+    child: Image.asset(index%2 == 0? "Asset/images/Group (1).png":"Asset/images/Frame 2085664036.png"),
+  );
+
+}
+
+class FlatRoadPainter extends CustomPainter {
+  final int loops;
+  final double rowHeight;
+  final double padding;
+  final double progress;
+  final int totalNodes;
+
+  FlatRoadPainter({
+    required this.loops,
+    required this.rowHeight,
+    required this.padding,
+    required this.progress, required this.totalNodes,
+
+
+  });
+
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backgroundPaint = Paint()
+      ..color = Color(0xFFFFE0B2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40
+      ..strokeCap = StrokeCap.round;
+    final activePaint = Paint()
+      ..color = Color(0xFF4CAF50)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40
+      ..strokeCap = StrokeCap.round;
+    final path = Path();
+
+    final double leftX = padding;
+    final double rightX = size.width - padding;
+    final double r = rowHeight / 2;
+    double yTop = r;
+    double yBottom = yTop + rowHeight;
+    path.moveTo(leftX + r / 2, yTop);
+    for (int i = 0; i < loops; i++) {
+      path.lineTo(rightX - r, yTop);
+      path.arcTo(
+        Rect.fromLTWH(rightX - rowHeight, yTop, rowHeight, rowHeight),
+        -1.57,
+        3.14,
+        false,
+      );
+      path.lineTo(leftX + r, yBottom);
+      path.arcTo(
+        Rect.fromLTWH(leftX, yBottom, rowHeight, rowHeight),
+        -1.57,
+        -3.14,
+        false,
+      );
+      if (i < loops - 1) {
+        yTop = yBottom + rowHeight;
+        yBottom = yTop + rowHeight;
+        path.moveTo(leftX + r, yTop);
+      }
+      canvas.drawPath(path, backgroundPaint);
+    }
+
+    final metrics = path.computeMetrics().toList();
+    if (metrics.isEmpty) return;
+    final double totalLength =metrics.fold(0.0,((sum, m) => sum + m.length));
+    final  double percent =(totalNodes<=1)? 0:(progress/(totalNodes-1).clamp(0.0,1.0));
+    final  double drawLength =totalLength*percent;
+    double drawn =0;
+    for(final m in metrics){
+      final double remaining =drawLength-drawn;
+      if (remaining<=0) break;
+      final double segment =remaining.clamp(0,m.length);
+      if(segment>0){
+        final Path sub =m.extractPath(0,segment);
+        //canvas.drawPath(sub,activePaint);
+        drawn +=segment;
+      }
+    }
+
+
+
+        }
+
+
+   @override
+   bool shouldRepaint(covariant FlatRoadPainter oldDelegate)=>oldDelegate.progress != progress;
+
+  }
+
+
+
+
+import 'package:flutter/material.dart';
+
+class SerpentineRoad extends StatefulWidget {
+  const SerpentineRoad({super.key});
+
+  @override
+  State<SerpentineRoad> createState() => _SerpentineRoadState();
+}
+
+class _SerpentineRoadState extends State<SerpentineRoad> {
+  final int loops = 10;
+  final double rowHeight = 200;
+  final double padding = 60;
+  double progress = 0;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.green[50],
+      body: LayoutBuilder(builder: (context, constraints) {
+        final double totalHeight = (loops * 2) * rowHeight;
+        final double width = constraints.maxWidth;
+        List<Offset> nodes = List.generate(loops * 2, (i) {
+          double xPercent = (i % 2 == 0) ? .30 : .70;
+          return Offset(width * xPercent, rowHeight * (i + 0.5));
+        });
+
+        return SingleChildScrollView(
+          child: SizedBox(
+            height: totalHeight,
+            width: width,
+            child: Stack(
+              children: [
+                CustomPaint(
+                  size: Size(width, totalHeight),
+                  painter: FlatRoadPainter(
+                    loops: loops,
+                    rowHeight: rowHeight,
+                    padding: padding,
+                    progress: progress,
+                  ),
+                ),
+                ...nodes.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  final pos = entry.value;
+                  return Positioned(
+                    left: pos.dx - 30,
+                    top: pos.dy - 30,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => progress = index.toDouble());
+                      },
+                      child: _buildNode(index),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+Widget _buildNode(int index) {
+  return Container(
+    width: 60,
+    height: 60,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.green),
+    ),
+    child: Image.asset(
+      index % 2 == 0
+          ? "Asset/images/Group (1).png"
+          : "Asset/images/Frame 2085664036.png",
+      fit: BoxFit.contain,
+    ),
+  );
+}
+
+class FlatRoadPainter extends CustomPainter {
+  final int loops;
+  final double rowHeight;
+  final double padding;
+  final double progress;
+
+  FlatRoadPainter({
+    required this.loops,
+    required this.rowHeight,
+    required this.padding,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backgroundPaint = Paint()
+      ..color = const Color(0xFFFFE0B2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40
+      ..strokeCap = StrokeCap.round;
+
+    final activePaint = Paint()
+      ..color = const Color(0xFF4CAF50)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 40
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+
+    final double leftX = padding;
+    final double rightX = size.width - padding;
+    final double r = rowHeight / 2;
+
+    double yTop = r;
+    double yBottom = yTop + rowHeight;
+    path.moveTo(leftX + r / 2, yTop);
+
+    for (int i = 0; i < loops; i++) {
+      path.lineTo(rightX - r, yTop);
+      path.arcTo(
+        Rect.fromLTWH(rightX - rowHeight, yTop, rowHeight, rowHeight),
+        -1.57,
+        3.14,
+        false,
+      );
+      path.lineTo(leftX + r, yBottom);
+
+      if (i < loops - 1) {
+        path.arcTo(
+          Rect.fromLTWH(leftX, yBottom, rowHeight, rowHeight),
+          -1.57,
+          -3.14,
+          false,
+        );
+        yTop = yBottom + rowHeight;
+        yBottom = yTop + rowHeight;
+        path.moveTo(leftX + r, yTop);
+      } else {
+      }
+    }
+    canvas.drawPath(path, backgroundPaint);
+    final metrics = path.computeMetrics().toList();
+    if (metrics.isEmpty) return;
+    final int totalNodes = loops * 2;
+    final double percent = (totalNodes <= 1) ? 0 : (progress / (totalNodes - 1)).clamp(0, 1);
+    double totalLength = 0;
+    for (var m in metrics) {
+      totalLength += m.length;
+    }
+    final double drawLength = totalLength * percent;
+    double currLength = 0;
+    for (var m in metrics) {
+      if (currLength >= drawLength) break;
+
+      final double extractEnd = (drawLength - currLength).clamp(0, m.length);
+      if (extractEnd > 0) {
+        final Path sub = m.extractPath(0, extractEnd);
+        canvas.drawPath(sub, activePaint);
+      }
+      currLength += m.length;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant FlatRoadPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+          oldDelegate.loops != loops ||
+          oldDelegate.rowHeight != rowHeight ||
+          oldDelegate.padding != padding;
+}
+
+
